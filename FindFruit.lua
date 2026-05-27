@@ -1,9 +1,3 @@
-getgenv().Config = {
-    Team = "", -- "Pirates" or "Marines"
-    Weapon = "Blox Fruit", -- "Melee" , "Sword" "Blox Fruit
-    WebhookUrl = "",
-    PingID ""
-}
 
 if not getgenv().Config.Team or getgenv().Config.Team == "" then
     if game:GetService("Players").LocalPlayer.Team then
