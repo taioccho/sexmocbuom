@@ -1,11 +1,3 @@
-if not game:IsLoaded() then game.Loaded:Wait() end
-
-getgenv().Config = {
-    Team = "",
-    Weapon = "Blox Fruit",
-    WebhookUrl = "",
-    PingID = ""
-}
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -569,3 +561,60 @@ task.spawn(function()
         scanAndStoreFruits()
     end
 end)
+_G.AntiFallVelocity = true 
+_G.AntiAFK = true
+
+function EnableAntiFall()
+    game:GetService("RunService").Stepped:Connect(function()
+        if _G.AntiFallVelocity and game:GetService("Players").LocalPlayer.Character then
+            hrp = game:GetService("Players").LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            humanoid = game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            
+            if hrp and humanoid then
+                bv = hrp:FindFirstChild("AntiFallBV")
+                if not bv then
+                    bv = Instance.new("BodyVelocity")
+                    bv.Name = "AntiFallBV"
+                    bv.MaxForce = Vector3.new(0, 99999, 0)
+                    bv.Velocity = Vector3.new(0, 0, 0)
+                    bv.Parent = hrp
+                end
+                
+                if humanoid:GetState() ~= Enum.HumanoidStateType.PlatformStanding then
+                    humanoid:ChangeState(Enum.HumanoidStateType.PlatformStanding)
+                end
+            end
+        else
+            if game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                bv = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart:FindFirstChild("AntiFallBV")
+                if bv then bv:Destroy() end
+                
+                humanoid = game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+                end
+            end
+        end
+    end)
+end
+
+function EnableAntiAFK()
+    game:GetService("Players").LocalPlayer.Idled:Connect(function()
+        if _G.AntiAFK then
+            game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            task.wait(1)
+            game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            print("[Anti-AFK]: ACTIVE")
+        end
+    end)
+end
+
+if _G.AntiFallVelocity then
+    EnableAntiFall()
+    print("-> Anti-Fall: ACTIVE")
+end
+
+if _G.AntiAFK then
+    EnableAntiAFK()
+    print("-> Anti-AFK: ACTIVE")
+end
