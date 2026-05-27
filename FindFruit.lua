@@ -1,10 +1,66 @@
-task.spawn(function()
-    pcall(function()
-        if game:GetService("Players").LocalPlayer.Team == nil then
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetTeam", "Pirates")
-        end
-    end)
+getgenv().Config = {
+    Team = "", -- "Pirates" or "Marines"
+    Weapon = "Blox Fruit", -- "Melee" , "Sword" "Blox Fruit
+    WebhookUrl = "",
+    PingID ""
+}
+
+if not getgenv().Config.Team or getgenv().Config.Team == "" then
+    if game:GetService("Players").LocalPlayer.Team then
+        getgenv().Config.Team = game:GetService("Players").LocalPlayer.Team.Name
+    else
+        getgenv().Config.Team = "Pirates"
+    end
+end
+
+pcall(function()
+    if getgenv().Config.Team == "Pirates" then
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", "Pirates")
+    elseif getgenv().Config.Team == "Marines" then
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", "Marines")
+    end
 end)
+EquipWeapon = function(text)
+    if not text then return end
+    if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild(text) then
+        
+        if game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+            game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):EquipTool(game:GetService("Players").LocalPlayer.Backpack:FindFirstChild(text))
+        end
+    end
+end
+
+weaponSc = function(weapon)
+    
+    if game:GetService("Players").LocalPlayer.Character then
+        for _, heldTool in pairs(game:GetService("Players").LocalPlayer.Character:GetChildren()) do
+            if heldTool:IsA("Tool") and heldTool:FindFirstChild("ToolTip") and heldTool.ToolTip == weapon then
+                return 
+                end
+        end
+    end
+
+    
+    for __in, v in pairs(game:GetService("Players").LocalPlayer.Backpack:GetChildren()) do
+        if v:IsA("Tool") then
+            if v.ToolTip == weapon then 
+                EquipWeapon(v.Name) 
+                break 
+            end
+        end
+    end
+end
+
+task.spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            if getgenv().Config.Weapon and getgenv().Config.Weapon ~= "" then
+                weaponSc(getgenv().Config.Weapon)
+            end
+        end)
+    end
+end)
+
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
