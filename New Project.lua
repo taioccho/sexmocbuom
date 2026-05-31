@@ -876,9 +876,10 @@ _tp = function(Y)
 
 		tw:Play();
 
+		local yTimer = 0;
 		task.spawn(function()
-			while tw.PlaybackState == Enum.PlaybackState.Playing do
-				if not y then
+			while task.wait(0.05) do
+				if not y or tw.PlaybackState ~= Enum.PlaybackState.Playing then
 					tw:Cancel();
 					break;
 				end;
@@ -889,7 +890,12 @@ _tp = function(Y)
 				else
 					bv.Velocity = Vector3.zero;
 				end;
-				task.wait(0.05);
+				-- Set Y bằng Y của target mỗi 0.5s
+				yTimer = yTimer + 0.05;
+				if yTimer >= 0.5 then
+					yTimer = 0;
+					Q.CFrame = CFrame.new(Q.Position.X, Y.Position.Y, Q.Position.Z);
+				end;
 			end;
 
 			-- Dọn dẹp
