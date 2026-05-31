@@ -77,22 +77,14 @@ if v16 then
     require(v16):Stop()
 end
 
-local _PlaceId = game.PlaceId
-
-if ({
-    [2753915549] = true,
-    [4442272183] = true,
-    [7449423635] = true,
-})[_PlaceId] then
-    if _PlaceId == 2753915549 then
-        World1 = true
-    elseif _PlaceId == 4442272183 then
-        World2 = true
-    elseif _PlaceId == 7449423635 then
-        World3 = true
-    end
+if game.PlaceId == 2753915549 or game.PlaceId == 85211729168715 then
+    World1 = true
+elseif game.PlaceId == 4442272183 or game.PlaceId == 79091703265657 then
+    World2 = true
+elseif game.PlaceId == 7449423635 or game.PlaceId == 100117331123089 then
+    World3 = true
 else
-    game.Players.LocalPlayer:Kick('Unsupported Game')
+    game.Players.LocalPlayer:Kick('Please join the real Blox Fruits')
 end
 
 repeat
@@ -1694,7 +1686,7 @@ local Window = Fluent:CreateWindow({
     Size = UDim2.fromOffset(500, 350),
     Acrylic = false,
     Theme = 'Dark',
-    MinimizeKey = Enum.KeyCode.LeftControl,
+    MinimizeKey = Enum.KeyCode.End,
 })
 
 local Tabs = {
@@ -11214,10 +11206,10 @@ Button.MouseButton1Click:Connect(function()
         Size = UDim2.new(0, 40, 0, 40)
     }):Play()
 
-    -- toggle UI qua LeftControl (khớp MinimizeKey)
-    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+    -- envio da tecla END (forma mais compatível)
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.End, false, game)
     task.wait(0.05)
-    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftControl, false, game)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.End, false, game)
 
 end)
 
