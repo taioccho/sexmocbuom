@@ -866,7 +866,7 @@ _tp = function(Y)
 
 		-- Tween J với tốc độ 310 studs/s
 		local r = (Y.Position - Q.Position).Magnitude;
-		local t = math.clamp(r / 310, 0.05, 10);
+		local t = r / 300;
 		local a = TweenInfo.new(t, Enum.EasingStyle.Linear, Enum.EasingDirection.Out);
 		local tw = (game:GetService("TweenService")):Create(J, a, { CFrame = Y });
 
@@ -876,26 +876,14 @@ _tp = function(Y)
 
 		tw:Play();
 
-		local yTimer = 0;
 		task.spawn(function()
-			while task.wait(0.05) do
+			while task.wait(0.3) do
 				if not y or tw.PlaybackState ~= Enum.PlaybackState.Playing then
 					tw:Cancel();
 					break;
 				end;
-				-- Cập nhật BodyVelocity theo hướng đích
-				local dir = (Y.Position - Q.Position);
-				if dir.Magnitude > 1 then
-					bv.Velocity = dir.Unit * 310;
-				else
-					bv.Velocity = Vector3.zero;
-				end;
-				-- Set Y bằng Y của target mỗi 0.5s
-				yTimer = yTimer + 0.05;
-				if yTimer >= 0.5 then
-					yTimer = 0;
-					Q.CFrame = CFrame.new(Q.Position.X, Y.Position.Y, Q.Position.Z);
-				end;
+				-- Set thẳng Y của HRP bằng Y của target
+				Q.CFrame = CFrame.new(Q.Position.X, Y.Position.Y, Q.Position.Z);
 			end;
 
 			-- Dọn dẹp
