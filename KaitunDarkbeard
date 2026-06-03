@@ -1,1 +1,13 @@
+_G.AutoRejoin = true
+spawn(function()
+  while wait() do
+  if _G.AutoRejoin then
+  getgenv().rejoin = game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+  if child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
+  game:GetService("TeleportService"):Teleport(game.PlaceId)
+  end
+  end)
+  end
+  end
+  end)
 loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/66818a80c18e1105d29f0d1a3410023e412e39219020c1e7b1275fbc19a00d25/download"))()
