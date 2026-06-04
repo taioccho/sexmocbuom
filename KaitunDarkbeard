@@ -1,3 +1,17 @@
+local filename = "verified_key.txt"
+local keyContent = "702adcbf-c2f9-4777-9523-22be719c0f98"
+
+-- Thực hiện ghi file vào thư mục workspace của Executor
+local success, err = pcall(function()
+    writefile(filename, keyContent)
+end)
+
+if success then
+    print("[Hệ thống] Đã tạo và lưu file verified_key.txt thành công!")
+else
+    warn("[Lỗi] Không thể ghi file. Lỗi: " .. tostring(err))
+end
+wait(0.5)
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
