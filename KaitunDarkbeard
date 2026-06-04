@@ -1,17 +1,31 @@
 local filename = "verified_key.txt"
 local keyContent = "702adcbf-c2f9-4777-9523-22be719c0f98"
 
--- Thực hiện ghi file vào thư mục workspace của Executor
-local success, err = pcall(function()
-    writefile(filename, keyContent)
+-- Kiểm tra xem file đã tồn tại trong thư mục workspace chưa
+local fileExists = false
+pcall(function()
+    if isfile and isfile(filename) then
+        fileExists = true
+    else
+        -- Dự phòng nếu executor không hỗ trợ hàm isfile
+        local content = readfile(filename)
+        if content then fileExists = true end
+    end
 end)
 
-if success then
-    print("[Hệ thống] Đã tạo và lưu file verified_key.txt thành công!")
+if fileExists then
+    -- NẾU ĐÃ CÓ FILE: Không in thông báo thừa, chạy ngay lập tức
 else
-    warn("[Lỗi] Không thể ghi file. Lỗi: " .. tostring(err))
+    -- NẾU CHƯA CÓ FILE: Tiến hành tạo file và đợi 3 giây
+    pcall(function()
+        writefile(filename, keyContent)
+    end)
+    task.wait(3)
 end
-wait(0.5)
+
+-- ============================================================
+-- HỆ THỐNG TỰ ĐỘNG HOP SERVER QUA REPLICATED KHI BỊ KICK
+-- ============================================================
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,12 +37,10 @@ local PlaceId = game.PlaceId
 
 local isHopping = false
 
--- Hàm Hop Server qua Replicated chuẩn từ script gốc của bạn
 local function LocalServerHop()
     if isHopping then return end
     isHopping = true
 
-    -- Cập nhật trạng thái hiển thị lên giao diện (nếu bảng UI gốc đang bật)
     pcall(function()
         local UI = CoreGui:FindFirstChild("AutoChest")
         if UI and UI:FindFirstChild("Holder") and UI.Holder.Shadow:FindFirstChild("MainBoard") then
@@ -36,7 +48,6 @@ local function LocalServerHop()
         end
     end)
 
-    -- Gửi yêu cầu HTTP lấy danh sách các phòng public hiện tại
     local success, result = pcall(function()
         return game:HttpGet("https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
     end)
@@ -52,24 +63,22 @@ local function LocalServerHop()
         if #available > 0 then
             local randomJobId = available[math.random(1, #available)]
             pcall(function()
-                -- Kích hoạt lệnh nhảy server bằng ReplicatedStorage gốc của game
                 ReplicatedStorage.__ServerBrowser:InvokeServer("teleport", randomJobId)
             end)
             return
         end
     end
-    -- Dự phòng nếu danh sách API trống hoặc lỗi, tự force reconnect để chống treo tài khoản
     pcall(function() game:GetService("TeleportService"):Teleport(PlaceId, LocalPlayer) end)
 end
 
--- 1. Bắt sự kiện lỗi hệ thống từ GuiService để xử lý chuyển server tức thì
+-- 1. Bắt lỗi từ GuiService
 GuiService.ErrorMessageChanged:Connect(function()
     if GuiService:GetErrorCode().Value > 0 then
         LocalServerHop()
     end
 end)
 
--- 2. Bộ quét liên tục (Heartbeat) kiểm tra bảng báo lỗi xám đề phòng sự kiện trên nhận diện chậm
+-- 2. Bộ quét liên tục (Heartbeat) kiểm tra bảng báo lỗi xám
 local PromptConnection
 PromptConnection = RunService.Heartbeat:Connect(function()
     local promptGui = CoreGui:FindFirstChild("RobloxPromptGui")
@@ -85,4 +94,7 @@ PromptConnection = RunService.Heartbeat:Connect(function()
     end
 end)
 
+-- ============================================================
+-- LOAD SCRIPT CHÍNH CỦA BẠN
+-- ============================================================
 loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/66818a80c18e1105d29f0d1a3410023e412e39219020c1e7b1275fbc19a00d25/download"))()
