@@ -80,19 +80,19 @@ end
 local _PlaceId = game.PlaceId
 
 if ({
-    [2753915549] = true,
-    [4442272183] = true,
-    [7449423635] = true,
+    [2753915549] or [85211729168715] = true,
+    [4442272183] or [79091703265657] = true,
+    [7449423635] or [100117331123089] = true,
 })[_PlaceId] then
-    if _PlaceId == 2753915549 then
+    if _PlaceId == 2753915549 or _PlaceId === 85211729168715 then
         World1 = true
-    elseif _PlaceId == 4442272183 then
+    elseif _PlaceId == 4442272183 or _PlaceId == 79091703265657 then
         World2 = true
-    elseif _PlaceId == 7449423635 then
+    elseif _PlaceId == 7449423635 or _PlaceId == 100117331123089 then
         World3 = true
     end
 else
-    game.Players.LocalPlayer:Kick('Unsupported Game')
+    game.Players.LocalPlayer:Kick('Not Blox Fruit')
 end
 
 repeat
