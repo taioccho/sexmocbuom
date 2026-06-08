@@ -80,9 +80,9 @@ end
 local _PlaceId = game.PlaceId
 
 if ({
-    [2753915549] or [85211729168715] = true,
-    [4442272183] or [79091703265657] = true,
-    [7449423635] or [100117331123089] = true,
+    [2753915549] = true,
+    [4442272183] = true,
+    [7449423635] = true,
 })[_PlaceId] then
     if _PlaceId == 2753915549 or _PlaceId === 85211729168715 then
         World1 = true
