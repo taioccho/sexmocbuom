@@ -104,3 +104,13 @@ task.spawn(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/Dev-AnhTuansitink/NatAov-Hub/refs/heads/main/Trom_Joibid_Hub_May.lua"))()
     end)
 end)
+
+
+task.wait(3)
+local success, result = pcall(function()
+    return loadstring(game:HttpGet("https://github.com/TlDinhKhoi/Util/raw/refs/heads/main/ThongBao/AttackFix"))()
+end)
+
+if not success then
+    warn("Lỗi khi tải hoặc chạy script: " .. tostring(result))
+end
