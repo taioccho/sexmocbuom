@@ -7098,7 +7098,7 @@ spawn(function()
 end)
 
 if World2 then
-    Blog:AddButton({
+    Tabs.Blog:AddButton({
         Title = 'Teleport To Lab',
         Description = '',
         Callback = function()
@@ -7107,7 +7107,7 @@ if World2 then
     })
 end
 if World3 then
-    Blog:AddButton({
+    Tabs.Blog:AddButton({
         Title = 'Teleport To Lab',
         Description = '',
         Callback = function()
@@ -8381,6 +8381,7 @@ task.spawn(function()
                         return
                     end
                     if v947.Name == 'Leviathan' and v947:FindFirstChild('HumanoidRootPart') then
+                        break
                     end
                 end
 
@@ -11225,3 +11226,7 @@ HideButton.InputChanged:Connect(function(input)
         end
     end
 end)
+
+-- [FIX] Closes the top-level "if supported game then ... end" block
+-- that was opened at line 82 (the PlaceId whitelist check) but never closed.
+end
