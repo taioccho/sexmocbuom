@@ -386,7 +386,23 @@ game:GetService("Players").LocalPlayer.Idled:connect(function()
 end);
 Sea1 = false;
 Sea2 = false;
-Sea3 = true;
+Sea3 = false;
+local v19 = game.PlaceId;
+if (v19 == 2753915549) then
+    Sea1 = true;
+elseif (v19 == 4442272183) then
+    Sea2 = true;
+elseif (v19 == 7449423635) then
+    Sea3 = true;
+end
+if (v19 == 85211729168715) then
+    Sea1 = true;
+elseif (v19 == 79091703265657) then
+    Sea2 = true;
+elseif (v19 == 100117331123089) then
+    Sea3 = true;
+end
+
 function CheckLevel()
     local v197 = game:GetService("Players").LocalPlayer.Data.Level.Value;
     if Sea1 then
