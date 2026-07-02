@@ -1,4 +1,4 @@
-local v14 = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local v14 = loadstring(game:HttpGet("https://raw.githubusercontent.com/taioccho/sexmocbuom/main/Fluent.lua"))()
 local v15 = v14:CreateWindow({
     Title = "Min Gaming",
     SubTitle = "",
@@ -2046,11 +2046,11 @@ function BTPZ(v209)
     task.wait();
     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v209;
 end
-TweenSpeed = 350;
+TweenSpeed = 300;
 function Tween(v211)
     local v212 = (v211.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude;
     local v213 = TweenSpeed;
-    if (v212 >= 350) then
+    if (v212 >= 300) then
         v213 = TweenSpeed;
     end
     local v214 = TweenInfo.new(v212 / v213, Enum.EasingStyle.Linear);
