@@ -5,7 +5,7 @@
 --   | |  | | | || |___| |_| | |___ | |___ | |___| | | | |_| |
 --   |_|  |_| |_|_____|_______|____| \____| \____|_| |_|\___/ 
 
-getgenv().Team = "Marines"
+
 
 local TaiOcCho_Env = {
     ["isfile"] = isfile or function() return false end,
