@@ -6,7 +6,8 @@
 --   |_|  |_| |_|_____|_______|____| \____| \____|_| |_|\___/ 
 
 
-
+if getgenv().Fynix then return
+else
 local TaiOcCho_Env = {
     ["isfile"] = isfile or function() return false end,
     ["readfile"] = readfile or function() return "" end,
@@ -17,7 +18,7 @@ local TaiOcCho_Env = {
 
 local TaiOcCho_Key = "376a040c-ec48-4a69-b9db-d51c64b291d5"
 local TaiOcCho_File = "verified_key.txt"
-local TaiOcCho_Url = "https://api.jnkie.com/api/v1/luascripts/public/d0638460a8e835b4acfd77fd52d88aa0dda0c3db57a9e433e4c74004a3f3243e/download"
+local TaiOcCho_Url = "https://api.jnkie.com/api/v1/luascripts/public/af6e7edb0d95fc20432a423cbf691f95090c64260cc1bb917d19fb2a8a31bc00/download"
 
 local function TaiOcCho_Function()
     local TaiOcCho_Check = false
@@ -45,3 +46,4 @@ end
 TaiOcCho_Function()
 wait(0.5)
 loadstring(game:HttpGet("https://raw.githubusercontent.com/Dev-AnhTuansitink/Module/refs/heads/main/EzFastAttack.lua"))()
+end
