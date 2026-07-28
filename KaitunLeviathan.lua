@@ -18,7 +18,7 @@ local TaiOcCho_Env = {
 
 local TaiOcCho_Key = "376a040c-ec48-4a69-b9db-d51c64b291d5"
 local TaiOcCho_File = "verified_key.txt"
-local TaiOcCho_Url = "https://api.jnkie.com/api/v1/luascripts/public/af6e7edb0d95fc20432a423cbf691f95090c64260cc1bb917d19fb2a8a31bc00/download"
+local TaiOcCho_Url = "https://api.jnkie.com/api/v1/luascripts/public/b9dfd0f629fa7112e8139981199e7dabb4946a39862027dbfefac48b0de1ba1b/download"
 
 local function TaiOcCho_Function()
     local TaiOcCho_Check = false
