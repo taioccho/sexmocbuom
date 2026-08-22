@@ -139,6 +139,23 @@ fpFeatureResultsLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(f
     fpFeatureResultsContainer.CanvasSize=UDim2.new(0,0,0,fpFeatureResultsLayout.AbsoluteContentSize.Y+2)
 end)
 local fpMovedFrames = {} -- Frame thật -> Container gốc của nó
+-- Khi 1 Frame bị .Parent đổi đi rồi đổi lại (search), Roblox chèn nó vào CUỐI danh sách
+-- con của Container gốc, nên UIListLayout (SortOrder=LayoutOrder, mọi Element vốn có
+-- cùng LayoutOrder mặc định) sẽ mất thứ tự ban đầu. Chuẩn hoá LayoutOrder=index hiện tại
+-- (1 LẦN DUY NHẤT, trước khi bất kỳ Frame nào trong Container đó từng bị di chuyển) để
+-- thứ tự luôn đúng dù có bị .Parent qua lại bao nhiêu lần.
+local fpNormalizedContainers = {}
+local function fpNormalizeContainerOrder(fpContainer)
+    if fpNormalizedContainers[fpContainer] then return end
+    fpNormalizedContainers[fpContainer] = true
+    local fpIdx = 0
+    for _, fpChild in ipairs(fpContainer:GetChildren()) do
+        if fpChild:IsA('GuiObject') then
+            fpChild.LayoutOrder = fpIdx
+            fpIdx = fpIdx + 1
+        end
+    end
+end
 local function fpShowFeatureLive(fpFrame, fpOriginalContainer)
     if fpMovedFrames[fpFrame] == nil then
         fpMovedFrames[fpFrame] = fpOriginalContainer
@@ -160,6 +177,22 @@ local function fpShowTabs()
     fpClearResultRows()
     fpRestoreMovedFrames()
     for fpW, fpCont in pairs(N.Containers) do fpCont.Visible = (fpW == N.SelectedTab) end
+    if N.Tabs[N.SelectedTab] then
+        v.TabDisplay.Text = N.Tabs[N.SelectedTab].Name
+        v.SelectorPosMotor:setGoal(q(N:GetCurrentTabPos(),{frequency=6}))
+    end
+end
+-- Đưa thanh accent (cái vệt xanh cạnh tab đang chọn) tới vị trí 1 dòng bất kỳ trong cột Tab
+-- (dùng cho cả tab thật lẫn dòng "not found" giả), mô phỏng đúng cách N:SelectTab làm.
+local function fpMoveSelectorToRow(fpRow)
+    task.defer(function()
+        local fpOkPos, fpOffsetY = pcall(function()
+            return fpRow.AbsolutePosition.Y - v.TabHolder.AbsolutePosition.Y
+        end)
+        if fpOkPos then
+            v.SelectorPosMotor:setGoal(q(fpOffsetY,{frequency=6}))
+        end
+    end)
 end
 -- fpAddTabRow: 1 dòng trong khu vực TABS, chỉ có 1 cột (tên tab), click → clear search + jump
 local function fpAddTabRow(fpTabName, fpTabIdx)
@@ -193,15 +226,15 @@ local function fpAddTabRow(fpTabName, fpTabIdx)
     end)
     table.insert(fpResultRows, fpRow)
 end
-local function fpAddNotFoundRow(fpQueryText)
-    local fpRow = s('TextButton',{
-        Size=UDim2.new(1,0,0,30),
+-- fpAddTabNotFoundRow: khi KHÔNG có tab nào khớp, tạo 1 "tab giả" trong cột Tab
+-- ghi "<đã gõ> not found." và kéo thanh accent (D) về ngay dòng này, giống hệt như
+-- khi 1 tab thật được chọn — không tạo số lượng result cho cột Tab.
+local function fpAddTabNotFoundRow(fpQueryText)
+    local fpRow = s('Frame',{
+        Size=UDim2.new(1,0,0,28),
         BackgroundTransparency=1,
-        Text='',
-        AutoButtonColor=false,
-        LayoutOrder=5,
-        Parent=fpResultFrame,
         ZIndex=6,
+        Parent=fpTabSectionList,
     },{
         s('TextLabel',{
             Size=UDim2.new(1,-12,1,0),
@@ -217,6 +250,7 @@ local function fpAddNotFoundRow(fpQueryText)
         }),
     })
     table.insert(fpResultRows, fpRow)
+    fpMoveSelectorToRow(fpRow)
 end
 v.SearchBoxInner:GetPropertyChangedSignal('Text'):Connect(function()
 local fpOk,fpErr=pcall(function()
@@ -230,14 +264,21 @@ local fpOk,fpErr=pcall(function()
     -- Ẩn tab button thật, hiện result frame (khu TABS ở cột Tab)
     for _, fpTabData in pairs(N.Tabs) do fpTabData.Frame.Visible = false end
     fpResultFrame.Visible = true
-    -- 1) Tab name khớp -> vẫn hiện ở cột Tab (như cũ)
+    -- 1) Tab name khớp -> hiện ở cột Tab (như cũ). Không khớp cái nào -> tạo dòng
+    --    "not found" NGAY TRONG cột Tab và kéo thanh accent về đó (độc lập với cột chức năng).
+    local fpTabMatchCount = 0
     for fpW, fpTabData in pairs(N.Tabs) do
         if string.find(fpNorm(fpTabData.Name), fpQuery, 1, true) then
+            fpTabMatchCount = fpTabMatchCount + 1
             fpAddTabRow(fpTabData.Name, fpW)
         end
     end
+    if fpTabMatchCount == 0 then
+        fpAddTabNotFoundRow(v.SearchBoxInner.Text)
+    end
     -- 2) Element/chức năng title khớp -> hiện TRỰC TIẾP (bật/tắt được luôn) ở CỘT CHỨC NĂNG
     for fpW, fpContainer in pairs(N.Containers) do
+        fpNormalizeContainerOrder(fpContainer)
         fpContainer.Visible = false
         local fpElements = fpFindElementsInContainer(fpContainer)
         for _, fpEl in ipairs(fpElements) do
@@ -246,11 +287,14 @@ local fpOk,fpErr=pcall(function()
             end
         end
     end
-    local fpHasFeatures = next(fpMovedFrames) ~= nil
-    fpFeatureResultsContainer.Visible = fpHasFeatures
-    -- Không tìm thấy tab lẫn chức năng nào khớp -> hiện "<chữ đã gõ> not found."
-    if #fpResultRows == 0 and not fpHasFeatures then
-        fpAddNotFoundRow(v.SearchBoxInner.Text)
+    local fpFeatCount = 0
+    for _ in pairs(fpMovedFrames) do fpFeatCount = fpFeatCount + 1 end
+    fpFeatureResultsContainer.Visible = fpFeatCount > 0
+    -- Chữ tiêu đề lớn (chỗ khoanh tròn "Main") đổi theo kết quả cột chức năng
+    if fpFeatCount == 0 then
+        v.TabDisplay.Text = v.SearchBoxInner.Text..' not found.'
+    else
+        v.TabDisplay.Text = 'Found '..fpFeatCount..' result.'
     end
 end)
 if not fpOk then warn('[Search Error]',fpErr) end
