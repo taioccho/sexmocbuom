@@ -35,14 +35,37 @@ local function fpHighlightFrame(fpFrame)
     fpStroke.Transparency = 0
     fpSearchActive[fpFrame] = fpStroke
 end
-local function fpGetElementTitle(fpOpt)
-    local fpFrame = fpOpt.Frame
+local function fpGetElementTitle(fpFrame)
     if not fpFrame then return nil end
-    local fpHolder = fpFrame:FindFirstChild('LabelHolder') or fpFrame
-    for _, fpV in ipairs(fpHolder:GetDescendants()) do
+    local fpHolder = fpFrame:FindFirstChild('LabelHolder')
+    if not fpHolder then return nil end
+    local fpTitleLabel = fpHolder:FindFirstChild('TextLabel')
+    if fpTitleLabel and fpTitleLabel:IsA('TextLabel') and fpTitleLabel.Text ~= '' then
+        return fpTitleLabel.Text
+    end
+    for _, fpV in ipairs(fpHolder:GetChildren()) do
         if fpV:IsA('TextLabel') and fpV.Text ~= '' then return fpV.Text end
     end
     return nil
+end
+-- Quét mọi Frame/TextButton con (đệ quy) của 1 Container để tìm các Element thật sự
+-- (mỗi Element có cấu trúc chung: Frame > LabelHolder > TitleLabel). Không dùng
+-- fpLib.Options vì object Element (h) không bao giờ lưu .Frame ra ngoài closure.
+local function fpFindElementsInContainer(fpContainer)
+    local fpFound = {}
+    if not fpContainer then return fpFound end
+    for _, fpDesc in ipairs(fpContainer:GetDescendants()) do
+        if (fpDesc:IsA('TextButton') or fpDesc:IsA('Frame')) then
+            local fpHolder = fpDesc:FindFirstChild('LabelHolder')
+            if fpHolder then
+                local fpTitle = fpGetElementTitle(fpDesc)
+                if fpTitle then
+                    table.insert(fpFound, {Frame = fpDesc, Title = fpTitle})
+                end
+            end
+        end
+    end
+    return fpFound
 end
 local function fpFindTabIndexForContainer(fpContainer)
     for fpW, fpC in pairs(N.Containers) do
@@ -157,6 +180,30 @@ local function fpAddResultRow(fpTabName, fpTabIdx, fpFeatTitle, fpFeatFrame, fpF
     fpRow.Parent = fpResultFrame
     table.insert(fpResultRows, fpRow)
 end
+local function fpAddNotFoundRow(fpQueryText)
+    local fpRow = s('TextButton',{
+        Size=UDim2.new(1,0,0,30),
+        BackgroundTransparency=1,
+        Text='',
+        AutoButtonColor=false,
+        ZIndex=6,
+    },{
+        s('TextLabel',{
+            Size=UDim2.new(1,-12,1,0),
+            Position=UDim2.fromOffset(6,0),
+            BackgroundTransparency=1,
+            Text=fpQueryText..' not found.',
+            Font=Enum.Font.Gotham,
+            TextSize=11,
+            TextXAlignment=Enum.TextXAlignment.Left,
+            TextTruncate=Enum.TextTruncate.AtEnd,
+            ZIndex=7,
+            ThemeTag={TextColor3='SubText'},
+        }),
+    })
+    fpRow.Parent = fpResultFrame
+    table.insert(fpResultRows, fpRow)
+end
 v.SearchBoxInner:GetPropertyChangedSignal('Text'):Connect(function()
 local fpOk,fpErr=pcall(function()
     fpClearStickyHighlights()
@@ -175,19 +222,20 @@ local fpOk,fpErr=pcall(function()
             fpAddResultRow(fpTabData.Name, fpW, '', nil, nil)
         end
     end
-    -- 2) Element/chức năng title matches
-    local fpLib = e(k)
-    for _, fpOpt in pairs(fpLib.Options) do
-        if fpOpt and fpOpt.Frame and fpOpt.Frame.Parent then
-            local fpTitle = fpGetElementTitle(fpOpt)
-            if fpTitle and string.find(fpNorm(fpTitle), fpQuery, 1, true) then
-                local fpContainer = fpFindParentContainer(fpOpt.Frame)
-                local fpTabIdx2   = fpContainer and fpFindTabIndexForContainer(fpContainer)
-                local fpTabName2  = (fpTabIdx2 and N.Tabs[fpTabIdx2] and N.Tabs[fpTabIdx2].Name) or '?'
-                fpHighlightFrame(fpOpt.Frame)
-                fpAddResultRow(fpTabName2, fpTabIdx2, fpTitle, fpOpt.Frame, fpContainer)
+    -- 2) Element/chức năng title matches: quét trực tiếp UI tree của từng Tab container
+    for fpW, fpContainer in pairs(N.Containers) do
+        local fpTabName2 = (N.Tabs[fpW] and N.Tabs[fpW].Name) or '?'
+        local fpElements = fpFindElementsInContainer(fpContainer)
+        for _, fpEl in ipairs(fpElements) do
+            if string.find(fpNorm(fpEl.Title), fpQuery, 1, true) then
+                fpHighlightFrame(fpEl.Frame)
+                fpAddResultRow(fpTabName2, fpW, fpEl.Title, fpEl.Frame, fpContainer)
             end
         end
+    end
+    -- Không tìm thấy tab lẫn chức năng nào khớp -> hiện "<chữ đã gõ> not found."
+    if #fpResultRows == 0 then
+        fpAddNotFoundRow(v.SearchBoxInner.Text)
     end
 end)
 if not fpOk then warn('[Search Error]',fpErr) end
