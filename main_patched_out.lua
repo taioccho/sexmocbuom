@@ -16,25 +16,6 @@ local F=s('Frame',{Size=UDim2.new(0,t.TabWidth,1,-66),Position=UDim2.new(0,12,0,
 v.TabDisplay=s('TextLabel',{RichText=true,Text='Tab',TextTransparency=0,FontFace=Font.new('rbxassetid://12187365364',Enum.FontWeight.SemiBold,Enum.FontStyle.Normal),TextSize=28,TextXAlignment='Left',TextYAlignment='Center',Size=UDim2.new(1,-16,0,28),Position=UDim2.fromOffset(t.TabWidth+26,56),BackgroundTransparency=1,ThemeTag={TextColor3='Text'}})v.ContainerHolder=s('CanvasGroup',{Size=UDim2.new(1,-t.TabWidth-32,1,-102),Position=UDim2.fromOffset(t.TabWidth+26,90),BackgroundTransparency=1})v.Root=s('Frame',{BackgroundTransparency=1,Size=v.Size,Position=v.Position,Parent=t.Parent},{v.AcrylicPaint.Frame,v.TabDisplay,v.ContainerHolder,F,E})v.TitleBar=e(d.Parent.TitleBar){Title=t.Title,SubTitle=t.SubTitle,Parent=v.Root,Window=v}if e(k).UseAcrylic then v.AcrylicPaint.AddParent(v.Root)end local G,H=l.GroupMotor.new{X=v.Size.X.Offset,Y=v.Size.Y.Offset},l.GroupMotor.new{X=v.Position.X.Offset,Y=v.Position.Y.Offset}v.SelectorPosMotor=l.SingleMotor.new(17)v.SelectorSizeMotor=l.SingleMotor.new(0)v.ContainerBackMotor=l.SingleMotor.new(0)v.ContainerPosMotor=l.SingleMotor.new(94)G:onStep(function(I)v.Root.Size=UDim2.new(0,I.X,0,I.Y)end)H:onStep(function(I)v.Root.Position=UDim2.new(0,I.X,0,I.Y)end)local I,J=0,0 v.SelectorPosMotor:onStep(function(K)D.Position=UDim2.new(0,0,0,K+17+34)local L=tick()local M=L-J if I~=nil then v.SelectorSizeMotor:setGoal(q((math.abs(K-I)/(M*60))+16))I=K end J=L end)v.SelectorSizeMotor:onStep(function(K)D.Size=UDim2.new(0,4,0,K)end)v.ContainerBackMotor:onStep(function(K)v.ContainerHolder.GroupTransparency=K end)v.ContainerPosMotor:onStep(function(K)v.ContainerHolder.Position=UDim2.fromOffset(t.TabWidth+26,K)end)local K,L v.Maximize=function(M,N,O)v.Maximized=M v.TitleBar.MaxButton.Frame.Icon.Image=M and o.Restore or o.Max if M then K=v.Size.X.Offset L=v.Size.Y.Offset end local P,Q=M and j.ViewportSize.X or K,M and j.ViewportSize.Y or L G:setGoal{X=l[O and'Instant'or'Spring'].new(P,{frequency=6}),Y=l[O and'Instant'or'Spring'].new(Q,{frequency=6})}v.Size=UDim2.fromOffset(P,Q)if not N then H:setGoal{X=q(M and 0 or v.Position.X.Offset,{frequency=6}),Y=q(M and 0 or v.Position.Y.Offset,{frequency=6})}end end m.AddSignal(v.TitleBar.Frame.InputBegan,function(M)if M.UserInputType==Enum.UserInputType.MouseButton1 or M.UserInputType==Enum.UserInputType.Touch then w=true y=M.Position z=v.Root.Position if v.Maximized then z=UDim2.fromOffset(i.X-(i.X*((K-100)/v.Root.AbsoluteSize.X)),i.Y-(i.Y*(L/v.Root.AbsoluteSize.Y)))end M.Changed:Connect(function()if M.UserInputState==Enum.UserInputState.End then w=false end end)end end)m.AddSignal(v.TitleBar.Frame.InputChanged,function(M)if M.UserInputType==Enum.UserInputType.MouseMovement or M.UserInputType==Enum.UserInputType.Touch then x=M end end)m.AddSignal(E.InputBegan,function(M)if M.UserInputType==Enum.UserInputType.MouseButton1 or M.UserInputType==Enum.UserInputType.Touch then A=true B=M.Position end end)m.AddSignal(h.InputChanged,function(M)if M==x and w then local N=M.Position-y v.Position=UDim2.fromOffset(z.X.Offset+N.X,z.Y.Offset+N.Y)H:setGoal{X=r(v.Position.X.Offset),Y=r(v.Position.Y.Offset)}if v.Maximized then v.Maximize(false,true,true)end end if(M.UserInputType==Enum.UserInputType.MouseMovement or M.UserInputType==Enum.UserInputType.Touch)and A then local N,O=M.Position-B,v.Size local P=Vector3.new(O.X.Offset,O.Y.Offset,0)+Vector3.new(1,1,0)*N local Q=Vector2.new(math.clamp(P.X,470,2048),math.clamp(P.Y,380,2048))G:setGoal{X=l.Instant.new(Q.X),Y=l.Instant.new(Q.Y)}end end)m.AddSignal(h.InputEnded,function(M)if A==true or M.UserInputType==Enum.UserInputType.Touch then A=false v.Size=UDim2.fromOffset(G:getValue().X,G:getValue().Y)end end)m.AddSignal(v.TabHolder.UIListLayout:GetPropertyChangedSignal'AbsoluteContentSize',function()v.TabHolder.CanvasSize=UDim2.new(0,0,0,v.TabHolder.UIListLayout.AbsoluteContentSize.Y)end)m.AddSignal(h.InputBegan,function(M)if type(u.MinimizeKeybind)=='table'and u.MinimizeKeybind.Type=='Keybind'and not h:GetFocusedTextBox()then if M.KeyCode.Name==u.MinimizeKeybind.Value then v:Minimize()end elseif M.KeyCode==u.MinimizeKey and not h:GetFocusedTextBox()then v:Minimize()end end)function v.Minimize(M)v.Minimized=not v.Minimized v.Root.Visible=not v.Minimized if not C then C=true local N=u.MinimizeKeybind and u.MinimizeKeybind.Value or u.MinimizeKey.Name u:Notify{Title='Interface',Content='Press '..N..' to toggle the inteface.',Duration=6}end end function v.Destroy(M)if e(k).UseAcrylic then v.AcrylicPaint.Model:Destroy()end v.Root:Destroy()end local M=e(p.Dialog):Init(v)function v.Dialog(N,O)local P=M:Create()P.Title.Text=O.Title local Q=s('TextLabel',{FontFace=Font.new'rbxasset://fonts/families/GothamSSm.json',Text=O.Content,TextColor3=Color3.fromRGB(240,240,240),TextSize=14,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top,Size=UDim2.new(1,-40,1,0),Position=UDim2.fromOffset(20,60),BackgroundTransparency=1,Parent=P.Root,ClipsDescendants=false,ThemeTag={TextColor3='Text'}})s('UISizeConstraint',{MinSize=Vector2.new(300,165),MaxSize=Vector2.new(620,math.huge),Parent=P.Root})P.Root.Size=UDim2.fromOffset(Q.TextBounds.X+40,165)if Q.TextBounds.X+40>v.Size.X.Offset-120 then P.Root.Size=UDim2.fromOffset(v.Size.X.Offset-120,165)Q.TextWrapped=true P.Root.Size=UDim2.fromOffset(v.Size.X.Offset-120,Q.TextBounds.Y+150)end for R,S in next,O.Buttons do P:Button(S.Title,S.Callback)end P:Open()end local N=e(p.Tab):Init(v)
 -- ── Search helpers ──────────────────────────────────────────
 local function fpNorm(fpS) return string.lower(fpS or '') end
-local fpSearchActive = {}
-local function fpClearStickyHighlights()
-    for fpFrame, fpStroke in pairs(fpSearchActive) do
-        if fpStroke and fpStroke.Parent then fpStroke:Destroy() end
-    end
-    fpSearchActive = {}
-end
-local function fpHighlightFrame(fpFrame)
-    local fpStroke = fpFrame:FindFirstChild('FluentSearchStroke')
-    if not fpStroke then
-        fpStroke = Instance.new('UIStroke')
-        fpStroke.Name = 'FluentSearchStroke'
-        fpStroke.Thickness = 2
-        fpStroke.Parent = fpFrame
-    end
-    fpStroke.Color = Color3.fromRGB(90,170,255)
-    fpStroke.Transparency = 0
-    fpSearchActive[fpFrame] = fpStroke
-end
 local function fpGetElementTitle(fpFrame)
     if not fpFrame then return nil end
     -- LabelHolder không có Name='LabelHolder' thật sự (Instance.Name mặc định là 'Frame'),
@@ -130,29 +111,55 @@ local fpTabSectionList = s('Frame',{
 },{
     s('UIListLayout',{Padding=UDim.new(0,2),SortOrder=Enum.SortOrder.LayoutOrder}),
 })
--- Khu vực Features
-local fpFeatSectionHeader = fpMakeSectionHeader('FEATURES', 3)
-fpFeatSectionHeader.Parent = fpResultFrame
-local fpFeatSectionList = s('Frame',{
-    Size=UDim2.new(1,0,0,0),
-    AutomaticSize=Enum.AutomaticSize.Y,
-    BackgroundTransparency=1,
-    LayoutOrder=4,
-    Parent=fpResultFrame,
-},{
-    s('UIListLayout',{Padding=UDim.new(0,2),SortOrder=Enum.SortOrder.LayoutOrder}),
-})
 local fpResultRows = {}
 local function fpClearResultRows()
     for _, fpRow in ipairs(fpResultRows) do pcall(function() fpRow:Destroy() end) end
     fpResultRows = {}
     fpTabSectionHeader.Visible = false
-    fpFeatSectionHeader.Visible = false
+end
+-- Container hiện các Feature (Toggle/Dropdown/Button/Slider/...) TRỰC TIẾP (còn sống,
+-- bấm được luôn) ở CỘT CHỨC NĂNG bên phải (v.ContainerHolder), không jump/scroll.
+local fpFeatureResultsContainer = s('ScrollingFrame',{
+    Size=UDim2.fromScale(1,1),
+    BackgroundTransparency=1,
+    Visible=false,
+    ScrollBarImageColor3=Color3.fromRGB(255,255,255),
+    ScrollBarImageTransparency=0.95,
+    ScrollBarThickness=3,
+    BorderSizePixel=0,
+    CanvasSize=UDim2.fromScale(0,0),
+    ScrollingDirection=Enum.ScrollingDirection.Y,
+    Parent=v.ContainerHolder,
+},{
+    s('UIListLayout',{Padding=UDim.new(0,5),SortOrder=Enum.SortOrder.LayoutOrder}),
+    s('UIPadding',{PaddingRight=UDim.new(0,10),PaddingLeft=UDim.new(0,1),PaddingTop=UDim.new(0,1),PaddingBottom=UDim.new(0,1)}),
+})
+local fpFeatureResultsLayout = fpFeatureResultsContainer:FindFirstChildOfClass('UIListLayout')
+fpFeatureResultsLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+    fpFeatureResultsContainer.CanvasSize=UDim2.new(0,0,0,fpFeatureResultsLayout.AbsoluteContentSize.Y+2)
+end)
+local fpMovedFrames = {} -- Frame thật -> Container gốc của nó
+local function fpShowFeatureLive(fpFrame, fpOriginalContainer)
+    if fpMovedFrames[fpFrame] == nil then
+        fpMovedFrames[fpFrame] = fpOriginalContainer
+    end
+    fpFrame.Parent = fpFeatureResultsContainer
+end
+local function fpRestoreMovedFrames()
+    for fpFrame, fpOrig in pairs(fpMovedFrames) do
+        if fpFrame and fpOrig then
+            fpFrame.Parent = fpOrig
+        end
+    end
+    fpMovedFrames = {}
+    fpFeatureResultsContainer.Visible = false
 end
 local function fpShowTabs()
     for _, fpTabData in pairs(N.Tabs) do fpTabData.Frame.Visible = true end
     fpResultFrame.Visible = false
     fpClearResultRows()
+    fpRestoreMovedFrames()
+    for fpW, fpCont in pairs(N.Containers) do fpCont.Visible = (fpW == N.SelectedTab) end
 end
 -- fpAddTabRow: 1 dòng trong khu vực TABS, chỉ có 1 cột (tên tab), click → clear search + jump
 local function fpAddTabRow(fpTabName, fpTabIdx)
@@ -181,47 +188,8 @@ local function fpAddTabRow(fpTabName, fpTabIdx)
     })
     fpRow.MouseButton1Click:Connect(function()
         v.SearchBoxInner.Text = ''
-        fpClearStickyHighlights()
         fpShowTabs()
         if fpTabIdx then N:SelectTab(fpTabIdx) end
-    end)
-    table.insert(fpResultRows, fpRow)
-end
--- fpAddFeatureRow: 1 dòng trong khu vực FEATURES, chỉ có 1 cột (tên chức năng),
--- không hiển thị tên tab chứa nó. Click → jump tab + scroll tới element (giữ search).
-local function fpAddFeatureRow(fpFeatTitle, fpTabIdx, fpFeatFrame, fpFeatContainer)
-    fpFeatSectionHeader.Visible = true
-    local fpRow = s('TextButton',{
-        Size=UDim2.new(1,0,0,28),
-        BackgroundTransparency=0.88,
-        Text='',
-        ZIndex=6,
-        Parent=fpFeatSectionList,
-        ThemeTag={BackgroundColor3='Tab'},
-    },{
-        s('UICorner',{CornerRadius=UDim.new(0,5)}),
-        s('TextLabel',{
-            Size=UDim2.new(1,-12,1,0),
-            Position=UDim2.fromOffset(6,0),
-            BackgroundTransparency=1,
-            Text=fpFeatTitle,
-            Font=Enum.Font.Gotham,
-            TextSize=11,
-            TextXAlignment=Enum.TextXAlignment.Left,
-            TextTruncate=Enum.TextTruncate.AtEnd,
-            ZIndex=7,
-            ThemeTag={TextColor3='Text'},
-        }),
-    })
-    fpRow.MouseButton1Click:Connect(function()
-        if fpTabIdx then N:SelectTab(fpTabIdx) end
-        if fpFeatFrame and fpFeatContainer then
-            task.wait()
-            pcall(function()
-                fpFeatContainer.CanvasPosition=Vector2.new(0,
-                    math.max(0, fpFeatFrame.AbsolutePosition.Y - fpFeatContainer.AbsolutePosition.Y - 20))
-            end)
-        end
     end)
     table.insert(fpResultRows, fpRow)
 end
@@ -252,34 +220,36 @@ local function fpAddNotFoundRow(fpQueryText)
 end
 v.SearchBoxInner:GetPropertyChangedSignal('Text'):Connect(function()
 local fpOk,fpErr=pcall(function()
-    fpClearStickyHighlights()
     fpClearResultRows()
+    fpRestoreMovedFrames()
     local fpQuery = fpNorm(v.SearchBoxInner.Text)
     if fpQuery == '' then
         fpShowTabs()
         return
     end
-    -- Ẩn tab button thật, hiện result frame
+    -- Ẩn tab button thật, hiện result frame (khu TABS ở cột Tab)
     for _, fpTabData in pairs(N.Tabs) do fpTabData.Frame.Visible = false end
     fpResultFrame.Visible = true
-    -- 1) Tab name matches -> khu vực TABS
+    -- 1) Tab name khớp -> vẫn hiện ở cột Tab (như cũ)
     for fpW, fpTabData in pairs(N.Tabs) do
         if string.find(fpNorm(fpTabData.Name), fpQuery, 1, true) then
             fpAddTabRow(fpTabData.Name, fpW)
         end
     end
-    -- 2) Element/chức năng title matches -> khu vực FEATURES (quét trực tiếp UI tree)
+    -- 2) Element/chức năng title khớp -> hiện TRỰC TIẾP (bật/tắt được luôn) ở CỘT CHỨC NĂNG
     for fpW, fpContainer in pairs(N.Containers) do
+        fpContainer.Visible = false
         local fpElements = fpFindElementsInContainer(fpContainer)
         for _, fpEl in ipairs(fpElements) do
             if string.find(fpNorm(fpEl.Title), fpQuery, 1, true) then
-                fpHighlightFrame(fpEl.Frame)
-                fpAddFeatureRow(fpEl.Title, fpW, fpEl.Frame, fpContainer)
+                fpShowFeatureLive(fpEl.Frame, fpContainer)
             end
         end
     end
+    local fpHasFeatures = next(fpMovedFrames) ~= nil
+    fpFeatureResultsContainer.Visible = fpHasFeatures
     -- Không tìm thấy tab lẫn chức năng nào khớp -> hiện "<chữ đã gõ> not found."
-    if #fpResultRows == 0 then
+    if #fpResultRows == 0 and not fpHasFeatures then
         fpAddNotFoundRow(v.SearchBoxInner.Text)
     end
 end)
