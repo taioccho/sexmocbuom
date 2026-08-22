@@ -84,8 +84,9 @@ local function fpFindParentContainer(fpFrame)
     return nil
 end
 -- ── Result frame sits inside TabHolder ───────────────────────
--- Khi search: ẩn tab button thật, hiện fpResultFrame với 2 cột (Tab | Chức năng)
--- Khi clear: ẩn fpResultFrame, hiện lại tab button thật
+-- Khi search: ẩn tab button thật, hiện fpResultFrame với 2 KHU VỰC RIÊNG BIỆT
+-- (Tabs | Features), mỗi khu vực có tiêu đề và danh sách kết quả của riêng nó.
+-- Khi clear: ẩn fpResultFrame, hiện lại tab button thật.
 local fpResultFrame = s('ScrollingFrame',{
     Size=UDim2.fromScale(1,1),
     BackgroundTransparency=1,
@@ -98,77 +99,120 @@ local fpResultFrame = s('ScrollingFrame',{
     ZIndex=5,
     Parent=v.TabHolder,
 },{
-    s('UIListLayout',{Padding=UDim.new(0,2),SortOrder=Enum.SortOrder.LayoutOrder}),
+    s('UIListLayout',{Padding=UDim.new(0,6),SortOrder=Enum.SortOrder.LayoutOrder}),
 })
 local fpResultLayout = fpResultFrame:FindFirstChildOfClass('UIListLayout')
 fpResultLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
     fpResultFrame.CanvasSize=UDim2.new(0,0,0,fpResultLayout.AbsoluteContentSize.Y)
 end)
+local function fpMakeSectionHeader(fpText, fpOrder)
+    return s('TextLabel',{
+        Size=UDim2.new(1,0,0,16),
+        BackgroundTransparency=1,
+        Text=fpText,
+        Font=Enum.Font.GothamBold,
+        TextSize=10,
+        TextXAlignment=Enum.TextXAlignment.Left,
+        LayoutOrder=fpOrder,
+        ZIndex=6,
+        ThemeTag={TextColor3='SubText'},
+    })
+end
+-- Khu vực Tabs
+local fpTabSectionHeader = fpMakeSectionHeader('TABS', 1)
+fpTabSectionHeader.Parent = fpResultFrame
+local fpTabSectionList = s('Frame',{
+    Size=UDim2.new(1,0,0,0),
+    AutomaticSize=Enum.AutomaticSize.Y,
+    BackgroundTransparency=1,
+    LayoutOrder=2,
+    Parent=fpResultFrame,
+},{
+    s('UIListLayout',{Padding=UDim.new(0,2),SortOrder=Enum.SortOrder.LayoutOrder}),
+})
+-- Khu vực Features
+local fpFeatSectionHeader = fpMakeSectionHeader('FEATURES', 3)
+fpFeatSectionHeader.Parent = fpResultFrame
+local fpFeatSectionList = s('Frame',{
+    Size=UDim2.new(1,0,0,0),
+    AutomaticSize=Enum.AutomaticSize.Y,
+    BackgroundTransparency=1,
+    LayoutOrder=4,
+    Parent=fpResultFrame,
+},{
+    s('UIListLayout',{Padding=UDim.new(0,2),SortOrder=Enum.SortOrder.LayoutOrder}),
+})
 local fpResultRows = {}
 local function fpClearResultRows()
     for _, fpRow in ipairs(fpResultRows) do pcall(function() fpRow:Destroy() end) end
     fpResultRows = {}
+    fpTabSectionHeader.Visible = false
+    fpFeatSectionHeader.Visible = false
 end
 local function fpShowTabs()
     for _, fpTabData in pairs(N.Tabs) do fpTabData.Frame.Visible = true end
     fpResultFrame.Visible = false
     fpClearResultRows()
 end
-local function fpAddResultRow(fpTabName, fpTabIdx, fpFeatTitle, fpFeatFrame, fpFeatContainer)
+-- fpAddTabRow: 1 dòng trong khu vực TABS, chỉ có 1 cột (tên tab), click → clear search + jump
+local function fpAddTabRow(fpTabName, fpTabIdx)
+    fpTabSectionHeader.Visible = true
     local fpRow = s('TextButton',{
-        Size=UDim2.new(1,0,0,30),
+        Size=UDim2.new(1,0,0,28),
         BackgroundTransparency=0.88,
         Text='',
         ZIndex=6,
+        Parent=fpTabSectionList,
         ThemeTag={BackgroundColor3='Tab'},
     },{
         s('UICorner',{CornerRadius=UDim.new(0,5)}),
+        s('TextLabel',{
+            Size=UDim2.new(1,-12,1,0),
+            Position=UDim2.fromOffset(6,0),
+            BackgroundTransparency=1,
+            Text=fpTabName,
+            Font=Enum.Font.GothamBold,
+            TextSize=11,
+            TextXAlignment=Enum.TextXAlignment.Left,
+            TextTruncate=Enum.TextTruncate.AtEnd,
+            ZIndex=7,
+            ThemeTag={TextColor3='Text'},
+        }),
     })
-    -- Cột trái: tên Tab (click → clear search + jump tab)
-    local fpTabCol = s('TextButton',{
-        Size=UDim2.new(0.46,0,1,0),
-        Position=UDim2.fromOffset(6,0),
-        BackgroundTransparency=1,
-        Text=fpTabName,
-        Font=Enum.Font.GothamBold,
-        TextSize=11,
-        TextXAlignment=Enum.TextXAlignment.Left,
-        TextTruncate=Enum.TextTruncate.AtEnd,
-        ZIndex=7,
-        ThemeTag={TextColor3='Text'},
-    })
-    fpTabCol.Parent = fpRow
-    -- Đường ngăn
-    s('Frame',{
-        Size=UDim2.new(0,1,0.6,0),
-        Position=UDim2.new(0.48,-1,0.2,0),
-        BackgroundTransparency=0.55,
-        ZIndex=7,
-        Parent=fpRow,
-        ThemeTag={BackgroundColor3='SubText'},
-    })
-    -- Cột phải: tên chức năng (toggle/button/slider/dropdown...)
-    s('TextLabel',{
-        Size=UDim2.new(0.50,0,1,0),
-        Position=UDim2.new(0.50,4,0,0),
-        BackgroundTransparency=1,
-        Text=fpFeatTitle or '',
-        Font=Enum.Font.Gotham,
-        TextSize=11,
-        TextXAlignment=Enum.TextXAlignment.Left,
-        TextTruncate=Enum.TextTruncate.AtEnd,
-        ZIndex=7,
-        Parent=fpRow,
-        ThemeTag={TextColor3='SubText'},
-    })
-    -- Click cột Tab → clear search + jump đến tab đó
-    fpTabCol.MouseButton1Click:Connect(function()
+    fpRow.MouseButton1Click:Connect(function()
         v.SearchBoxInner.Text = ''
         fpClearStickyHighlights()
         fpShowTabs()
         if fpTabIdx then N:SelectTab(fpTabIdx) end
     end)
-    -- Click phần còn lại của row → jump tab + scroll đến element (giữ search)
+    table.insert(fpResultRows, fpRow)
+end
+-- fpAddFeatureRow: 1 dòng trong khu vực FEATURES, chỉ có 1 cột (tên chức năng),
+-- không hiển thị tên tab chứa nó. Click → jump tab + scroll tới element (giữ search).
+local function fpAddFeatureRow(fpFeatTitle, fpTabIdx, fpFeatFrame, fpFeatContainer)
+    fpFeatSectionHeader.Visible = true
+    local fpRow = s('TextButton',{
+        Size=UDim2.new(1,0,0,28),
+        BackgroundTransparency=0.88,
+        Text='',
+        ZIndex=6,
+        Parent=fpFeatSectionList,
+        ThemeTag={BackgroundColor3='Tab'},
+    },{
+        s('UICorner',{CornerRadius=UDim.new(0,5)}),
+        s('TextLabel',{
+            Size=UDim2.new(1,-12,1,0),
+            Position=UDim2.fromOffset(6,0),
+            BackgroundTransparency=1,
+            Text=fpFeatTitle,
+            Font=Enum.Font.Gotham,
+            TextSize=11,
+            TextXAlignment=Enum.TextXAlignment.Left,
+            TextTruncate=Enum.TextTruncate.AtEnd,
+            ZIndex=7,
+            ThemeTag={TextColor3='Text'},
+        }),
+    })
     fpRow.MouseButton1Click:Connect(function()
         if fpTabIdx then N:SelectTab(fpTabIdx) end
         if fpFeatFrame and fpFeatContainer then
@@ -179,7 +223,6 @@ local function fpAddResultRow(fpTabName, fpTabIdx, fpFeatTitle, fpFeatFrame, fpF
             end)
         end
     end)
-    fpRow.Parent = fpResultFrame
     table.insert(fpResultRows, fpRow)
 end
 local function fpAddNotFoundRow(fpQueryText)
@@ -188,6 +231,8 @@ local function fpAddNotFoundRow(fpQueryText)
         BackgroundTransparency=1,
         Text='',
         AutoButtonColor=false,
+        LayoutOrder=5,
+        Parent=fpResultFrame,
         ZIndex=6,
     },{
         s('TextLabel',{
@@ -203,7 +248,6 @@ local function fpAddNotFoundRow(fpQueryText)
             ThemeTag={TextColor3='SubText'},
         }),
     })
-    fpRow.Parent = fpResultFrame
     table.insert(fpResultRows, fpRow)
 end
 v.SearchBoxInner:GetPropertyChangedSignal('Text'):Connect(function()
@@ -218,20 +262,19 @@ local fpOk,fpErr=pcall(function()
     -- Ẩn tab button thật, hiện result frame
     for _, fpTabData in pairs(N.Tabs) do fpTabData.Frame.Visible = false end
     fpResultFrame.Visible = true
-    -- 1) Tab name matches (cột chức năng để trống)
+    -- 1) Tab name matches -> khu vực TABS
     for fpW, fpTabData in pairs(N.Tabs) do
         if string.find(fpNorm(fpTabData.Name), fpQuery, 1, true) then
-            fpAddResultRow(fpTabData.Name, fpW, '', nil, nil)
+            fpAddTabRow(fpTabData.Name, fpW)
         end
     end
-    -- 2) Element/chức năng title matches: quét trực tiếp UI tree của từng Tab container
+    -- 2) Element/chức năng title matches -> khu vực FEATURES (quét trực tiếp UI tree)
     for fpW, fpContainer in pairs(N.Containers) do
-        local fpTabName2 = (N.Tabs[fpW] and N.Tabs[fpW].Name) or '?'
         local fpElements = fpFindElementsInContainer(fpContainer)
         for _, fpEl in ipairs(fpElements) do
             if string.find(fpNorm(fpEl.Title), fpQuery, 1, true) then
                 fpHighlightFrame(fpEl.Frame)
-                fpAddResultRow(fpTabName2, fpW, fpEl.Title, fpEl.Frame, fpContainer)
+                fpAddFeatureRow(fpEl.Title, fpW, fpEl.Frame, fpContainer)
             end
         end
     end
