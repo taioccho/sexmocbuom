@@ -37,31 +37,33 @@ local function fpHighlightFrame(fpFrame)
 end
 local function fpGetElementTitle(fpFrame)
     if not fpFrame then return nil end
-    local fpHolder = fpFrame:FindFirstChild('LabelHolder')
-    if not fpHolder then return nil end
-    local fpTitleLabel = fpHolder:FindFirstChild('TextLabel')
-    if fpTitleLabel and fpTitleLabel:IsA('TextLabel') and fpTitleLabel.Text ~= '' then
-        return fpTitleLabel.Text
-    end
-    for _, fpV in ipairs(fpHolder:GetChildren()) do
-        if fpV:IsA('TextLabel') and fpV.Text ~= '' then return fpV.Text end
+    -- LabelHolder không có Name='LabelHolder' thật sự (Instance.Name mặc định là 'Frame'),
+    -- nên không thể FindFirstChild('LabelHolder'). Nhận diện bằng cấu trúc: tìm Frame con
+    -- trực tiếp chứa ít nhất 1 TextLabel có Text khác rỗng -> lấy TextLabel đầu tiên đó
+    -- (đúng theo thứ tự tạo trong Element factory: TitleLabel luôn được thêm trước DescLabel).
+    for _, fpChild in ipairs(fpFrame:GetChildren()) do
+        if fpChild:IsA('Frame') then
+            for _, fpV in ipairs(fpChild:GetChildren()) do
+                if fpV:IsA('TextLabel') and fpV.Text ~= '' then
+                    return fpV.Text
+                end
+            end
+        end
     end
     return nil
 end
 -- Quét mọi Frame/TextButton con (đệ quy) của 1 Container để tìm các Element thật sự
--- (mỗi Element có cấu trúc chung: Frame > LabelHolder > TitleLabel). Không dùng
--- fpLib.Options vì object Element (h) không bao giờ lưu .Frame ra ngoài closure.
+-- (mỗi Element có 1 Frame con chứa TextLabel title). Không dùng fpLib.Options vì
+-- object Element (h) không bao giờ lưu .Frame ra ngoài closure, và không thể lọc
+-- theo Name='LabelHolder' vì Instance đó chưa bao giờ được đặt Name như vậy.
 local function fpFindElementsInContainer(fpContainer)
     local fpFound = {}
     if not fpContainer then return fpFound end
     for _, fpDesc in ipairs(fpContainer:GetDescendants()) do
-        if (fpDesc:IsA('TextButton') or fpDesc:IsA('Frame')) then
-            local fpHolder = fpDesc:FindFirstChild('LabelHolder')
-            if fpHolder then
-                local fpTitle = fpGetElementTitle(fpDesc)
-                if fpTitle then
-                    table.insert(fpFound, {Frame = fpDesc, Title = fpTitle})
-                end
+        if fpDesc:IsA('TextButton') then
+            local fpTitle = fpGetElementTitle(fpDesc)
+            if fpTitle then
+                table.insert(fpFound, {Frame = fpDesc, Title = fpTitle})
             end
         end
     end
